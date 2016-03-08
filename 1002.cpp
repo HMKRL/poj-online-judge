@@ -3,6 +3,7 @@
 #include<cstdio>
 #include<algorithm>
 #include<map>
+#include<cstring>
 using namespace std;
 
 struct phone {
@@ -12,44 +13,61 @@ struct phone {
 
 bool cmp(phone a, phone b)
 {
-	int i;
-	for(i = 0;i < 8;++i) {
-		if(a.num[i] != b.num[i]) return a.num[i] < b.num[i];
-	}
-	return false;
+	return a.num < b.num;
 }
 
 int main()
 {
 	int i, j, num, l, c = 1, mapped = 0;
-	map<string, int> Map;
-	string origin;
+	map<int, int> Map;
+//	string origin;
+	char origin[390];
 	scanf("%d", &num);
 	for(i = 0;i < num;++i) {
-		cin >> origin;
-		l = origin.length();
+		scanf("%s", origin);
+//		l = origin.length();
+		l = strlen(origin);
+		mapped = 0;
 		for(j = 0;j < l;++j) {
 			if(origin[j] == '-') 
 				continue;
-			else if(origin[j] >= '0' && origin[j] <= '9')
+			else if(origin[j] >= '0' && origin[j] <= '9') {
 				mapped *= 10;
 				mapped += origin[j] - '0';
-			else if(origin[j] >= 'A' && origin[j] <= 'C')
-				mapped[k++] = '2';
-			else if(origin[j] >= 'D' && origin[j] <= 'F')
-				mapped[k++] = '3';
-			else if(origin[j] >= 'G' && origin[j] <= 'I')
-				mapped[k++] = '4';
-			else if(origin[j] >= 'J' && origin[j] <= 'L')
-				mapped[k++] = '5';
-			else if(origin[j] >= 'M' && origin[j] <= 'O')
-				mapped[k++] = '6';
-			else if(origin[j] >= 'P' && origin[j] <= 'S')
-				mapped[k++] = '7';
-			else if(origin[j] >= 'T' && origin[j] <= 'V')
-				mapped[k++] = '8';
-			else if(origin[j] >= 'W' && origin[j] <= 'Y')
-				mapped[k++] = '9';
+			}
+			else if(origin[j] >= 'A' && origin[j] <= 'C') {
+				mapped *= 10;
+				mapped += 2;
+			}
+			else if(origin[j] >= 'D' && origin[j] <= 'F') {
+				mapped *= 10;
+				mapped += 3;
+			}
+			else if(origin[j] >= 'G' && origin[j] <= 'I') {
+				mapped *= 10;
+				mapped += 4;
+			}
+			else if(origin[j] >= 'J' && origin[j] <= 'L') {
+				mapped *= 10;
+				mapped += 5;
+			}
+			else if(origin[j] >= 'M' && origin[j] <= 'O') {
+				mapped *= 10;
+				mapped += 6;
+			}
+			else if(origin[j] >= 'P' && origin[j] <= 'S') {
+				mapped *= 10;
+				mapped += 7;
+			}
+			else if(origin[j] >= 'T' && origin[j] <= 'V') {
+				mapped *= 10;
+				mapped += 8;
+			}
+			else if(origin[j] >= 'W' && origin[j] <= 'Y') {
+				mapped *= 10;
+				mapped += 9;
+			}
+			else continue;
 		}
 		if(Map[mapped]) {
 			P[Map[mapped] - 1].times++;
@@ -62,10 +80,15 @@ int main()
 		}
 	}
 	sort(P, P + c, cmp);
+	int printed = 0;
 	for(i = 1;i < c;++i) {
-		if(P[i].times > 1)
-			cout << P[i].num << ' ' << P[i].times << endl;
+		if(P[i].times > 1) {
+//			cout << P[i].num / 10000 << '-' << P[i].num % 10000 << ' ' << P[i].times << endl;
+			printf("%03d-%04d %d\n", P[i].num / 10000, P[i].num % 10000, P[i].times);
+			++printed;
+		}
 	}
+	if(!printed) puts("No duplicates.");
 
 	return 0;
 }
