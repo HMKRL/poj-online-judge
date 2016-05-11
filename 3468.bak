@@ -1,0 +1,253 @@
+#include<cstdio>
+#include<algorithm>
+#include<iostream>
+using namespace std;
+
+struct Node {
+	Node* left;
+	Node* right;
+	long long int l, r, max, min;
+	long long int inc, sum;
+};
+
+class SegTree {
+public:
+	SegTree(long long int n) {
+		Nodecount = 0;
+		MAXNUM = n;
+		Tree = new Node[(n << 1) + 10];
+		num = new long long int[(n << 1) + 100];
+		ans_max = 0;
+		ans_min = 2147483647;
+	};
+	~SegTree() {
+		delete [] Tree;
+		delete [] num;
+	};
+	void setNum() {
+		for(int i = 1;i <= MAXNUM;++i) {
+			scanf("%lld", num + i);
+		}
+	};
+	void pushDown(Node* N) {
+		if(N -> inc) {
+			N -> left -> sum += (N->left->r - N->left->l + 1) * N->inc;
+			N -> left -> inc += N -> inc;
+			N -> right -> sum += (N->right->r - N->right->l + 1) * N->inc;
+			N -> right -> inc += N -> inc;
+			N -> inc = 0;
+		}
+	}
+	void Build() {
+		Tree -> l = 1;
+		Tree -> r = MAXNUM;
+		if(1 == MAXNUM) {
+			Tree -> max = num[0];
+			Tree -> min = num[0];
+			Tree -> sum = num[0];
+			Tree -> inc = 0;
+			return;
+		}
+		else {
+			Tree -> left = Tree + (++Nodecount);
+			Tree -> right = Tree + (++Nodecount);
+			long long int m = (1 + MAXNUM) >> 1;
+			Build(Tree -> left, 1, m);
+			Build(Tree -> right, m + 1, MAXNUM);
+			Tree -> max = max(Tree -> left -> max, Tree -> right -> max);
+			Tree -> min = min(Tree -> left -> min, Tree -> right -> min);
+			Tree -> sum = Tree -> left -> sum + Tree -> right -> sum;
+		}
+	};
+	void Build(Node* N, long long int l, long long int r) {
+		N -> l = l;
+		N -> r = r;
+		if(l == r) {
+			N -> max = num[l];
+			N -> min = num[l];
+			N -> sum = num[l];
+			N -> inc = 0;
+			return;
+		}
+		else {
+			N -> left = Tree + (++Nodecount);
+			N -> right = Tree + (++Nodecount);
+			long long int m = (l + r) >> 1;
+			Build(N -> left, l, m);
+			Build(N -> right, m + 1, r);
+			N -> max = max(N -> left -> max, N -> right -> max);
+			N -> min = min(N -> left -> min, N -> right -> min);
+			N -> sum = N -> left -> sum + N -> right -> sum;
+		}
+	};
+	void Update(long long int l, long long int r,long long int change) {
+		if(Tree -> l == l && Tree -> r == r) {
+			Tree -> max += change;
+			Tree -> min += change;
+			Tree -> inc += change;
+			Tree -> sum += (r - l + 1) * change;
+			return;
+		}
+		pushDown(Tree);
+		long long int m = (Tree -> l + Tree -> r) >> 1;
+		if(r <= m) Update(Tree -> left, l, r, change);
+		else if(l > m) Update(Tree -> right, l, r, change);
+		else {
+			Update(Tree -> left, l, m, change);
+			Update(Tree -> right, m + 1, r, change);
+		}
+		Tree -> max = max(Tree -> left -> max, Tree -> right -> max);
+		Tree -> min = min(Tree -> left -> min, Tree -> right -> min);
+		Tree -> sum = Tree -> left -> sum + Tree -> right -> sum;
+	};
+	void Update(Node* N, long long int l, long long int r,long long int change) {
+		if(N -> l == l && N -> r == r) {
+			N -> max += change;
+			N -> min += change;
+			N -> inc += change;
+			N -> sum += (r - l + 1) * change;
+			return;
+		}
+		pushDown(N);
+		long long int m = (N -> l + N -> r) >> 1;
+		if(r <= m) Update(N -> left, l, r, change);
+		else if(l > m) Update(N -> right, l, r, change);
+		else {
+			Update(N -> left, l, m, change);
+			Update(N -> right, m + 1, r, change);
+		}
+		N -> max = max(N -> left -> max, N -> right -> max);
+		N -> min = min(N -> left -> min, N -> right -> min);
+		N -> sum = N -> left -> sum + N -> right -> sum;
+	};
+	long long int Max(long long int l, long long int r) {
+		if(Tree -> l == l && Tree -> r == r) {
+			ans_max = max(Tree -> max, ans_max);
+		}
+		else{
+			pushDown(Tree);
+			long long int m = (Tree -> l + Tree -> r) >> 1;
+			if(r <= m) Max(Tree -> left, l, r);
+			else if(l > m) Max(Tree -> right, l, r);
+			else {
+				Max(Tree -> left, l, m);
+				Max(Tree -> right, m + 1, r);
+			}
+		}
+		long long int temp = ans_max;
+		ans_max = 0;
+		return temp;
+	};
+	void Max(Node* N, long long int l, long long int r) {
+		if(N -> l == l && N -> r == r) {
+			ans_max = max(N -> max, ans_max);
+			return;
+		}
+		pushDown(N);
+		long long int m = (N -> l + N -> r) >> 1;
+		if(r <= m) Max(N -> left, l, r);
+		else if(l > m) Max(N -> right, l, r);
+		else {
+			Max(N -> left, l, m);
+			Max(N -> right, m + 1, r);
+		}
+	};
+	long long int Min(long long int l, long long int r) {
+		if(Tree -> l == l && Tree -> r == r) {
+			ans_min = min(Tree -> min, ans_min);
+		}
+		else {
+			pushDown(Tree);
+			long long int m = (Tree -> l + Tree -> r) >> 1;
+			if(r <= m) Min(Tree -> left, l, r);
+			else if(l > m) Min(Tree -> right, l, r);
+			else {
+				Min(Tree -> left, l, m);
+				Min(Tree -> right, m + 1, r);
+			}
+		}
+		long long int temp = ans_min;
+		ans_min = 2147483647;
+		return temp;
+	};
+	void Min(Node* N, long long int l, long long int r) {
+		if(N -> l == l && N -> r == r) {
+			ans_min = min(N -> min, ans_min);
+			return;
+		}
+		pushDown(N);
+		long long int m = (N -> l + N -> r) >> 1;
+		if(r <= m) Min(N -> left, l, r);
+		else if(l > m) Min(N -> right, l, r);
+		else {
+			Min(N -> left, l, m);
+			Min(N -> right, m + 1, r);
+		}
+	};
+	long long int Sum(long long int l, long long int r) {
+		ans_sum = 0;
+		if(Tree -> l == l && Tree -> r == r) {
+			ans_sum += Tree -> sum;
+			return ans_sum;
+		}
+		pushDown(Tree);
+		long long int m = (Tree -> l + Tree -> r) >> 1;
+		if(r <= m) Sum(Tree -> left, l, r);
+		else if(l > m) Sum(Tree -> right, l, r);
+		else {
+			Sum(Tree -> left, l, m);
+			Sum(Tree -> right, m + 1, r);
+		}
+		return ans_sum;
+	};
+	void Sum(Node* N, long long int l, long long int r) {
+		if(N -> l == l && N -> r == r) {
+			ans_sum += N -> sum;
+			return;
+		}
+		pushDown(N);
+		long long int m = (N -> l + N -> r) >> 1;
+		if(r <= m) Sum(N -> left, l, r);
+		else if(l > m) Sum(N -> right, l, r);
+		else {
+			Sum(N -> left, l, m);
+			Sum(N -> right, m + 1, r);
+		}
+	};
+private:
+	long long int Nodecount;
+	long long int MAXNUM;
+	long long int ans_max;
+	long long int ans_min;
+	long long int* num;
+	long long int ans_sum;
+	Node* Tree;
+};
+
+int main()
+{
+	long long int m, n, a, b;
+	long long int D;
+	char c;
+	while(scanf("%lld%lld", &m, &n) != EOF) {
+		SegTree *ST = new SegTree(m);
+		ST -> setNum();
+		ST -> Build();
+		getchar();
+		while(n--) {
+			scanf("%c", &c);
+			switch(c) {
+				case 'Q':
+					scanf("%lld%lld%*c", &a, &b);
+					printf("%lld\n", ST -> Sum(a, b));
+					break;
+				case 'C':
+					scanf("%lld%lld%lld%*c", &a, &b, &D);
+					ST -> Update(a, b, D);
+					break;
+			}
+		}
+		delete ST;
+	}
+	return 0;
+}

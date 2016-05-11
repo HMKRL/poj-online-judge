@@ -1,0 +1,124 @@
+#include<cstdio>
+#include<algorithm>
+using namespace std;
+
+struct Node {
+	Node* left;
+	Node* right;
+	int l, r;
+	long long int sum, to_add;
+};
+
+class SegTree {
+public:
+	Node* Tree;
+	SegTree(int n) {
+		Nodecount = 0;
+		MAXNUM = n;
+		Tree = new Node[(n << 1) + 1];
+		num = new int[n + 1];
+	};
+	~SegTree() {
+		delete [] Tree;
+		delete [] num;
+	};
+	void setNum() {
+		for(int i = 1;i <= MAXNUM;++i) {
+			scanf("%d", num + i);
+		}
+	};
+	void Build(Node* N, int l, int r) {
+		N -> l = l;
+		N -> r = r;
+		if(l == r) {
+			N -> sum = num[l];
+			N -> to_add = 0;
+			return;
+		}
+		else {
+			N -> left = Tree + (++Nodecount);
+			N -> right = Tree + (++Nodecount);
+			int m = (l + r) >> 1;
+			Build(N -> left, l, m);
+			Build(N -> right, m + 1, r);
+			N -> sum = N -> left -> sum + N -> right -> sum;
+		}
+	};
+	void Update(Node* N, int l, int r, long long int change) {
+		if(N -> l == l && N -> r == r) {
+			N -> to_add += change;
+			N -> sum += (N -> r - N -> l + 1) * N -> to_add;
+			return;
+		}
+		else {
+			pushDown(N);
+			int m = (N -> l + N -> r) >> 1;
+			if(r <= m) Update(N -> left, l, r, change);
+			else if(l > m) Update(N -> right, l, r, change);
+			else {
+				Update(N -> left, l, m, change);
+				Update(N -> right, m + 1, r, change);
+			}
+		}
+	};
+	void pushDown(Node* N) {
+		if(N -> to_add) {
+			N -> left -> to_add += N -> to_add;
+			N -> left -> sum += ((N -> left -> r - N -> left -> l) + 1) * N -> to_add;
+			N -> right -> to_add += N -> to_add;
+			N -> right -> sum += ((N -> right -> r - N -> right -> l) + 1) * N -> to_add;
+			N -> to_add = 0;
+		}
+	};
+	long long int Sum(Node* N, int l, int r) {
+	if(N == Tree) ans_sum = 0;
+		if(N -> l == l && N -> r == r) {
+			ans_sum += N -> sum;
+		}
+		else {
+			pushDown(N);
+			int m = (N -> l + N -> r) >> 1;
+			if(r <= m) Sum(N -> left, l, r);
+			else if(l > m) Sum(N -> right, l, r);
+			else {
+				Sum(N -> left, l, m);
+				Sum(N -> right, m + 1, r);
+			}
+		}
+		return ans_sum;
+	}
+private:
+	int Nodecount;
+	int MAXNUM;
+	long long int ans_sum;
+	int* num;
+};
+
+int main()
+{
+	int m, n;
+	int a, b;
+	long long int c;
+	char QC;
+	while(scanf("%d%d%*c", &m, &n) != EOF) {
+		SegTree *ST = new SegTree(m);
+		ST -> setNum();
+		ST -> Build(ST -> Tree, 1, m);
+		getchar();
+		while(n--) {
+			scanf("%c", &QC);
+			switch(QC) {
+			case 'Q':
+				scanf("%d%d%*c", &a, &b);
+				printf("%lld\n", ST -> Sum(ST -> Tree, a, b));
+				break;
+			case 'C':
+				scanf("%d%d%lld%*c", &a, &b, &c);
+				ST -> Update(ST -> Tree, a, b, c);
+				break;
+			}
+		}
+		delete ST;
+	}
+	return 0;
+}
