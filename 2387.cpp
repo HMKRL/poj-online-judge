@@ -1,6 +1,7 @@
 #include<cstdio>
 #include<utility>
 #include<vector>
+#define INF 999999999
 using namespace std;
 
 int dis[2020][2020];
@@ -17,7 +18,7 @@ int main()
 		for(int j = 0;j <= N + 1;++j) {
 			dis[i][j] = 0;
 		}
-		PATH[i] = 2147483647;
+		PATH[i] = 999999999;
 	}
 	PATH[N] = 0;
 	for(int i = 0;i < T;++i) {
@@ -32,7 +33,7 @@ int main()
 		for(Vit = V.begin();Vit != V.end();++Vit) {
 			j = Vit -> first;
 			k = Vit -> second;
-			if(PATH[j] != 2147483647) {
+			if(PATH[j] != 999999999) {
 				PATH[k] = PATH[k] < PATH[j] + dis[j][k] ? PATH[k] : PATH[j] + dis[j][k];
 			}
 		}
